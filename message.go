@@ -118,6 +118,12 @@ func (m *Message) SetHeader(header, value string) {
 	textproto.MIMEHeader(m.Header).Set(header, value)
 }
 
+// AddHeader adds header to the list of headers and sets it to quoted-printable
+// encoded value.
+func (m *Message) AddHeader(header, value string) {
+	textproto.MIMEHeader(m.Header).Add(header, value)
+}
+
 // Subject line of the message.
 func (m *Message) Subject() string {
 	return m.GetHeader("Subject")
