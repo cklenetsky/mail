@@ -946,6 +946,17 @@ func (p *Multipart) AddMultipart(mediaType string) (nested *Multipart, err error
 // Specifying the charset in the mediaType string is recommended
 // ("plain/text; charset=utf-8").
 func (p *Multipart) AddText(mediaType string, r io.Reader) error {
+	return p.AddContent(mediaType, r, false)
+}
+
+// AddContent applies quoted-printable encoding to the content of r before writing
+// the encoded result in a new sub-part with media MIME type set to mediaType. The
+// binary boolean indicates whether or not the encoder should treat the content as
+// pure binary or not, encoding or skipping newlines, spaces, and tabs.
+//
+// Specifying the charset in the mediaType string is recommended
+// ("plain/text; charset=utf-8").
+func (p *Multipart) AddContent(mediaType string, r io.Reader, binary bool) error {
 	if p.isClosed {
 		return ErrPartClosed
 	}
@@ -962,6 +973,7 @@ func (p *Multipart) AddText(mediaType string, r io.Reader) error {
 
 	reader := bufio.NewReader(r)
 	encoder := quotedprintable.NewWriter(w)
+	encoder.Binary = binary
 	buffer := make([]byte, maxLineLen)
 	for {
 		read, err := reader.Read(buffer[:])
@@ -973,6 +985,7 @@ func (p *Multipart) AddText(mediaType string, r io.Reader) error {
 		}
 		encoder.Write(buffer[:read])
 	}
+	encoder.Close()
 	fmt.Fprintf(w, crlf)
 	fmt.Fprintf(w, crlf)
 	return nil
