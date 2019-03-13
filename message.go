@@ -991,7 +991,7 @@ func (p *Multipart) AddContent(mediaType string, r io.Reader, binary bool) error
 		} else if read > 0 {
 			shift := 4 - read
 			for i := 0; i < shift; i++ {
-				lastReadBytes[i] = lastReadBytes[i+shift]
+				lastReadBytes[i] = lastReadBytes[i+1]
 			}
 			for j := 0; j < read; j++ {
 				lastReadBytes[shift+j] = buffer[j]
