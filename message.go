@@ -971,8 +971,6 @@ func (p *Multipart) AddContent(mediaType string, r io.Reader, binary bool) error
 		return err
 	}
 
-	var lastReadBytes [4]byte
-
 	reader := bufio.NewReader(r)
 	encoder := quotedprintable.NewWriter(w)
 	encoder.Binary = binary
@@ -985,29 +983,10 @@ func (p *Multipart) AddContent(mediaType string, r io.Reader, binary bool) error
 			}
 			break
 		}
-		// Keep track of the last four bytes read
-		if read >= 4 {
-			lastReadBytes = [4]byte{buffer[read-4], buffer[read-3], buffer[read-2], buffer[read-1]}
-		} else if read > 0 {
-			shift := 4 - read
-			for i := 0; i < shift; i++ {
-				lastReadBytes[i] = lastReadBytes[i+1]
-			}
-			for j := 0; j < read; j++ {
-				lastReadBytes[shift+j] = buffer[j]
-			}
-		}
 		encoder.Write(buffer[:read])
 	}
 	encoder.Close()
 
-	// Write out crlf's if we lack them at the end
-	if lastReadBytes[0] != '\r' && lastReadBytes[1] != '\n' {
-		fmt.Fprintf(w, crlf)
-	}
-	if lastReadBytes[2] != '\r' && lastReadBytes[3] != '\n' {
-		fmt.Fprintf(w, crlf)
-	}
 	return nil
 }
 
